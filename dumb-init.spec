@@ -5,9 +5,9 @@ Summary:        Entry-point for containers that proxies signals
 
 License:        MIT
 URL:            https://github.com/Yelp/dumb-init
-Source0:        https://github.com/Yelp/dumb-init/archive/v%{version}.tar.gz
+Source0:        %{url}/archive/v%{version}/%{name}-%{version}.tar.gz
 
-BuildRequires:  vim-common
+BuildRequires:  gcc
 BuildRequires:  help2man
 
 %description
@@ -18,28 +18,23 @@ PID 1 inside minimal container environments (such as Docker).
 * It can pass signals properly for simple containers.
 
 %prep
-%setup -q 
+%autosetup
 
 %build
-
 # if we are building a release then this is not needed
 # make VERSION.h 
-gcc -std=gnu99 %{optflags} -o %{name} dumb-init.c 
-help2man --no-discard-stderr --include debian/help2man --no-info --name '%{summary}' ./%{name} | gzip -9 > %{name}.1.gz
-
+gcc %{optflags} %{__global_ldflags} -o %{name} %{name}.c 
+help2man --no-discard-stderr --include debian/help2man --no-info --name '%{summary}' ./%{name} > %{name}.1
 
 %install
-rm -rf $RPM_BUILD_ROOT
-mkdir -p "${RPM_BUILD_ROOT}/%{_bindir}" "${RPM_BUILD_ROOT}/%{_mandir}/man1/"
-cp %{name} "${RPM_BUILD_ROOT}/%{_bindir}/"
-cp %{name}.1.gz "${RPM_BUILD_ROOT}/%{_mandir}/man1/"
+install -Dpm0755 %{name} %{buildroot}%{_bindir}/%{name}
+install -Dpm0644 %{name}.1 %{buildroot}%{_mandir}/man1/%{name}.1
 
 %files
-%{_bindir}/%{name}
 %license LICENSE
 %doc README.md
-%doc %{_mandir}/man1/%{name}.1.gz
-
+%{_bindir}/%{name}
+%doc %{_mandir}/man1/%{name}.1*
 
 %changelog
 * Mon Aug 15 2016 alsadi <alsadi@gmail.com> - 1.1.3-2
